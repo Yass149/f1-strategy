@@ -30,18 +30,28 @@ def evaluate_future_laps(
     if len(train) < 4 or test.empty:
         raise ValueError("Need at least four training laps and future laps with known anchors")
     model = TyreDegradationModel().fit(train)
+
+    def model_delta(row, anchor):
+        predicted = model.predict_with_context(str(row.compound), row.tyre_life, row.lap_number, str(row.driver), str(row.team))
+        anchored = model.predict_with_context(str(anchor["compound"]), anchor["tyre_life"], anchor["lap_number"], str(row.driver), str(anchor["team"]))
+        return float(predicted - anchored)
+
+    known_deltas = []
+    known_errors = []
+    for row in known.itertuples(index=False):
+        anchor = anchors.loc[row.driver]
+        if row.lap_number != anchor["lap_number"]:
+            known_deltas.append(model_delta(row, anchor))
+            known_errors.append(float(row.lap_time_seconds - anchor["lap_time_seconds"]))
+    denominator = sum(value * value for value in known_deltas)
+    alpha = sum(value * error for value, error in zip(known_deltas, known_errors)) / denominator if denominator else 0.0
+    alpha = max(0.0, min(1.0, alpha))
     predictions = []
-    baseline = []
     actual = []
     for row in test.itertuples(index=False):
-        predicted_absolute = model.predict_with_context(
-            str(row.compound), row.tyre_life, row.lap_number, str(row.driver), str(row.team)
-        )
         anchor = anchors.loc[row.driver]
-        anchor_absolute = model.predict_with_context(
-            str(anchor["compound"]), anchor["tyre_life"], anchor["lap_number"], str(row.driver), str(anchor["team"])
-        )
-        predictions.append(float(anchor["lap_time_seconds"]) + predicted_absolute - anchor_absolute)
+        base = float(anchor["lap_time_seconds"])
+        predictions.append(base + alpha * model_delta(row, anchor))
         actual.append(float(row.lap_time_seconds))
     baseline = [float(anchors.loc[row.driver, "lap_time_seconds"]) for row in test.itertuples()]
     model_mae = sum(abs(prediction - truth) for prediction, truth in zip(predictions, actual)) / len(actual)
@@ -50,6 +60,7 @@ def evaluate_future_laps(
         "cutoff_lap": cutoff_lap,
         "train_laps": len(train),
         "test_laps": len(test),
+        "calibration_alpha": round(alpha, 4),
         "model_mae_seconds": round(model_mae, 4),
         "last_lap_baseline_mae_seconds": round(baseline_mae, 4),
         "improvement_seconds": round(baseline_mae - model_mae, 4),
