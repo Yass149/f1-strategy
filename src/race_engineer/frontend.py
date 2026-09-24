@@ -17,7 +17,7 @@ DASHBOARD_HTML = """<!doctype html>
     .card { background:rgba(20,28,49,.92); border:1px solid #2c395a; border-radius:18px; padding:22px; box-shadow:0 18px 40px #05081255; }
     label { display:block; color:var(--muted); font-size:.85rem; margin:12px 0 5px; } input { width:100%; padding:10px; border-radius:9px; border:1px solid #3a496e; background:#0d1528; color:white; }
     button { margin-top:16px; width:100%; padding:11px; border:0; border-radius:9px; background:var(--accent); color:white; font-weight:700; cursor:pointer; }
-    pre { white-space:pre-wrap; color:#d7e1ff; min-height:90px; } .ok { color:var(--green); }
+    pre { white-space:pre-wrap; color:#d7e1ff; min-height:90px; } .ok { color:var(--green); } select { width:100%; padding:9px; border-radius:9px; border:1px solid #3a496e; background:#0d1528; color:white; margin:8px 0 12px; } canvas { width:100%; height:180px; display:block; }
   </style>
 </head>
 <body><main>
@@ -34,24 +34,29 @@ DASHBOARD_HTML = """<!doctype html>
       <button>Run counterfactual</button>
     </form>
     <article class="card"><h2>Decision output</h2><div id="result"><p>Submit the comparison to see the projected race-time difference.</p></div></article>
-    <article class="card"><h2>Loaded telemetry</h2><p>VER lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="520" height="180"></canvas><div id="telemetry-status"></div></article>
+    <article class="card"><h2>Loaded telemetry</h2><label for="driver-select">Driver</label><select id="driver-select"></select><p id="telemetry-description">Lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="400" height="180"></canvas><div id="telemetry-status"></div></article>
   </section>
   <p class="ok">● API online · <span id="dataset">Checking race data...</span> · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
 </main>
 <script>
 const form = document.querySelector('#compare-form'); const result = document.querySelector('#result');
-fetch('/data/summary').then(response => response.json()).then(data => {
-  const node = document.querySelector('#dataset');
-  node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
-});
-fetch('/data/laps?driver=VER&limit=60').then(response => response.json()).then(laps => {
-  const canvas = document.querySelector('#pace-chart'); const context = canvas.getContext('2d');
-  if (!laps.length) { document.querySelector('#telemetry-status').textContent = 'No telemetry sample available.'; return; }
+const driverSelect = document.querySelector('#driver-select');
+function loadTelemetry(driver) { fetch(`/data/laps?driver=${driver}&limit=60`).then(response => response.json()).then(laps => {
+  const canvas = document.querySelector('#pace-chart'); const context = canvas.getContext('2d'); context.clearRect(0, 0, canvas.width, canvas.height);
+  document.querySelector('#telemetry-description').textContent = `${driver} lap-time trace from the processed Monza session.`;
+  if (!laps.length) { document.querySelector('#telemetry-status').textContent = 'No accurate telemetry sample available.'; return; }
   const values = laps.map(lap => lap.lap_time_seconds).filter(value => value > 0); const low = Math.min(...values); const high = Math.max(...values);
   context.strokeStyle = '#ff4d6d'; context.lineWidth = 3; context.beginPath();
   values.forEach((value, index) => { const x = index * (canvas.width - 20) / Math.max(values.length - 1, 1) + 10; const y = canvas.height - 10 - ((value - low) / Math.max(high - low, 0.01)) * (canvas.height - 20); index ? context.lineTo(x, y) : context.moveTo(x, y); }); context.stroke();
-  document.querySelector('#telemetry-status').textContent = `${values.length} valid laps · ${low.toFixed(2)}–${high.toFixed(2)} seconds`;
+  document.querySelector('#telemetry-status').textContent = `${values.length} accurate laps · ${low.toFixed(2)}–${high.toFixed(2)} seconds`;
+}); }
+fetch('/data/summary').then(response => response.json()).then(data => {
+  const node = document.querySelector('#dataset');
+  node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
+  (data.drivers || []).forEach(driver => { const option = document.createElement('option'); option.value = driver; option.textContent = driver; driverSelect.appendChild(option); });
+  if (data.drivers && data.drivers.length) loadTelemetry(data.drivers[0]);
 });
+driverSelect.addEventListener('change', () => loadTelemetry(driverSelect.value));
 form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
   for (const key of Object.keys(data)) data[key] = Number(data[key]);
   result.innerHTML = '<p>Calculating...</p>';

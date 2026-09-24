@@ -83,6 +83,7 @@ def summarise_lap_file(path: Union[str, Path]) -> dict:
         "path": str(file_path),
         "lap_count": len(laps),
         "driver_count": int(laps["driver"].nunique()),
+        "drivers": sorted(laps["driver"].dropna().astype(str).unique().tolist()),
         "lap_min": int(laps["lap_number"].min()),
         "lap_max": int(laps["lap_number"].max()),
     }

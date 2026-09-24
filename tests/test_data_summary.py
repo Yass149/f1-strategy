@@ -17,7 +17,7 @@ def test_summary_reports_processed_laps(tmp_path) -> None:
         "path": str(path),
         "lap_count": 2,
         "driver_count": 2,
+        "drivers": ["HAM", "VER"],
         "lap_min": 1,
         "lap_max": 57,
     }
-
