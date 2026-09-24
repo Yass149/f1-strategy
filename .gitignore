@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+*.egg-info/
+.DS_Store
+
+data/raw/
+data/processed/
+artifacts/
+*.parquet
+*.csv
+
+.env
+.env.*
+!.env.example
