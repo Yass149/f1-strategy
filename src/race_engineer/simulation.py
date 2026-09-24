@@ -9,6 +9,7 @@ class StrategyComparison:
     pit_now_seconds: float
     pit_now_advantage_seconds: float
     recommendation: str
+    decision_strength: str
 
 
 def compare_pit_now(
@@ -44,5 +45,5 @@ def compare_pit_now(
         pit_now_seconds=round(pit_now, 3),
         pit_now_advantage_seconds=round(advantage, 3),
         recommendation="PIT NOW" if advantage > 0 else "STAY OUT",
+        decision_strength="MARGINAL" if abs(advantage) < 2.0 else "CLEAR",
     )
-

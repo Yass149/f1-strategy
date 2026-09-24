@@ -55,6 +55,7 @@ function loadContext(driver) { fetch(`/data/context?driver=${driver}&lap=40`).th
   for (const [name, value] of Object.entries({laps_remaining: context.laps_remaining, current_tyre_age: context.tyre_age, current_pace_seconds: context.current_pace_seconds})) {
     const input = document.querySelector(`[name="${name}"]`); if (input) input.value = value;
   }
+  form.requestSubmit();
 }); }
 fetch('/data/summary').then(response => response.json()).then(data => {
   const node = document.querySelector('#dataset');
@@ -67,7 +68,7 @@ form.addEventListener('submit', async (event) => { event.preventDefault(); const
   for (const key of Object.keys(data)) data[key] = Number(data[key]);
   result.innerHTML = '<p>Calculating...</p>';
   const response = await fetch('/strategy/compare', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-  const output = await response.json(); result.innerHTML = response.ok ? `<h3>${output.recommendation}</h3><pre>${JSON.stringify(output, null, 2)}</pre>` : `<pre>${JSON.stringify(output, null, 2)}</pre>`;
+  const output = await response.json(); result.innerHTML = response.ok ? `<h3>${output.recommendation} · ${output.decision_strength}</h3><pre>${JSON.stringify(output, null, 2)}</pre>` : `<pre>${JSON.stringify(output, null, 2)}</pre>`;
 });
 </script></body></html>"""
 

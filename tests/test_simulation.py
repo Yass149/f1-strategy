@@ -13,6 +13,7 @@ def test_pit_now_wins_when_old_tyres_are_slow() -> None:
     )
     assert result.recommendation == "PIT NOW"
     assert result.pit_now_advantage_seconds > 0
+    assert result.decision_strength == "CLEAR"
 
 
 def test_staying_out_wins_when_pit_loss_is_too_high() -> None:
@@ -27,6 +28,17 @@ def test_staying_out_wins_when_pit_loss_is_too_high() -> None:
     assert result.pit_now_advantage_seconds < 0
 
 
+def test_simulator_marks_close_calls_as_marginal() -> None:
+    result = compare_pit_now(
+        laps_remaining=13,
+        current_tyre_age=9,
+        current_pace_seconds=90,
+        current_degradation_seconds_per_lap=0.08,
+        pit_loss_seconds=25,
+    )
+    assert result.decision_strength == "MARGINAL"
+
+
 def test_simulator_rejects_negative_laps() -> None:
     with pytest.raises(ValueError, match="laps_remaining"):
         compare_pit_now(
@@ -36,4 +48,3 @@ def test_simulator_rejects_negative_laps() -> None:
             current_degradation_seconds_per_lap=0.1,
             pit_loss_seconds=20,
         )
-
