@@ -98,6 +98,9 @@ def _fit_line(laps: pd.DataFrame) -> CompoundFit:
     # penalty keeps the driver/team terms stable without clipping wear rates.
     penalty = np.eye(design.shape[1]) * 1.0
     penalty[0, 0] = 0.0
+    weather_indices = [index for index, name in enumerate(["intercept", *matrix.columns.tolist()]) if name.startswith("weather_")]
+    for index in weather_indices:
+        penalty[index, index] = 100.0
     response = working["lap_time_seconds"].astype(float).to_numpy()
     augmented_design = np.vstack([design, np.sqrt(penalty)])
     augmented_response = np.concatenate([response, np.zeros(design.shape[1])])

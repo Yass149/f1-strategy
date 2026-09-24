@@ -87,15 +87,22 @@ def attach_weather_features(laps: pd.DataFrame, weather: pd.DataFrame | None) ->
         return laps
     left = laps.copy()
     right = weather.copy()
-    left[lap_time_column] = pd.to_datetime(left[lap_time_column], errors="coerce", utc=True)
-    right["Time"] = pd.to_datetime(right["Time"], errors="coerce", utc=True)
-    left = left.sort_values(lap_time_column)
+    if not (pd.api.types.is_timedelta64_dtype(left[lap_time_column]) and pd.api.types.is_timedelta64_dtype(right["Time"])):
+        left[lap_time_column] = pd.to_datetime(left[lap_time_column], errors="coerce", utc=True)
+        right["Time"] = pd.to_datetime(right["Time"], errors="coerce", utc=True)
     right = right.sort_values("Time")
     columns = [c for c in ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed") if c in right]
     if not columns:
         return laps
-    joined = pd.merge_asof(left, right[["Time", *columns]], left_on=lap_time_column, right_on="Time", direction="backward")
-    return joined.drop(columns=["Time"], errors="ignore").sort_index()
+    valid = left[left[lap_time_column].notna()].sort_values(lap_time_column)
+    invalid = left[left[lap_time_column].isna()].copy()
+    for column in columns:
+        invalid[column] = pd.NA
+    if valid.empty:
+        return invalid.sort_index()
+    joined = pd.merge_asof(valid, right[["Time", *columns]], left_on=lap_time_column, right_on="Time", direction="backward")
+    joined = joined.drop(columns=["Time"], errors="ignore")
+    return pd.concat([joined, invalid], ignore_index=False).sort_index()
 
 
 def filter_laps(laps: pd.DataFrame) -> pd.DataFrame:
