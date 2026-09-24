@@ -18,6 +18,8 @@ class CompoundFit:
     lap_number_coefficient: float = 0.0
     driver_terms: dict[str, float] | None = None
     team_terms: dict[str, float] | None = None
+    weather_terms: dict[str, float] | None = None
+    weather_means: dict[str, float] | None = None
 
 
 class TyreDegradationModel:
@@ -53,7 +55,7 @@ class TyreDegradationModel:
         if self.global_fit is None:
             raise RuntimeError("Fit the model before predicting")
         fit = self.fits.get(compound, self.global_fit)
-        return _predict_fit(fit, tyre_life, 0.0, None, None)
+        return _predict_fit(fit, tyre_life, 0.0, None, None, None)
 
     def predict_with_context(
         self,
@@ -62,11 +64,12 @@ class TyreDegradationModel:
         lap_number: float,
         driver: str | None = None,
         team: str | None = None,
+        weather: dict[str, float] | None = None,
     ) -> float:
         if self.global_fit is None:
             raise RuntimeError("Fit the model before predicting")
         return _predict_fit(
-            self.fits.get(compound, self.global_fit), tyre_life, lap_number, driver, team
+            self.fits.get(compound, self.global_fit), tyre_life, lap_number, driver, team, weather
         )
 
     def to_dict(self) -> dict:
@@ -81,7 +84,12 @@ def _fit_line(laps: pd.DataFrame) -> CompoundFit:
     for column, default in (("lap_number", 0), ("driver", "UNKNOWN"), ("team", "UNKNOWN")):
         if column not in working:
             working[column] = default
+    weather_columns = [column for column in ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed") if column in working]
+    weather_means = {column: float(pd.to_numeric(working[column], errors="coerce").median()) for column in weather_columns}
     matrix = pd.DataFrame({"tyre_life": working["tyre_life"].astype(float), "lap_number": working["lap_number"].astype(float)})
+    for column in weather_columns:
+        values = pd.to_numeric(working[column], errors="coerce").fillna(weather_means[column])
+        matrix[f"weather_{column}"] = values - weather_means[column]
     driver = pd.get_dummies(working["driver"].astype(str), prefix="driver", drop_first=True, dtype=float)
     team = pd.get_dummies(working["team"].astype(str), prefix="team", drop_first=True, dtype=float)
     matrix = pd.concat([matrix, driver, team], axis=1)
@@ -103,6 +111,8 @@ def _fit_line(laps: pd.DataFrame) -> CompoundFit:
         lap_number_coefficient=round(float(coefficient_map.get("lap_number", 0.0)), 4),
         driver_terms={key: round(float(value), 4) for key, value in coefficient_map.items() if key.startswith("driver_")},
         team_terms={key: round(float(value), 4) for key, value in coefficient_map.items() if key.startswith("team_")},
+        weather_terms={key: round(float(value), 4) for key, value in coefficient_map.items() if key.startswith("weather_")},
+        weather_means=weather_means,
     )
 
 
@@ -112,6 +122,7 @@ def _predict_fit(
     lap_number: float,
     driver: str | None,
     team: str | None,
+    weather: dict[str, float] | None,
 ) -> float:
     value = fit.baseline_seconds + fit.degradation_seconds_per_lap * tyre_life
     value += fit.lap_number_coefficient * lap_number
@@ -119,6 +130,12 @@ def _predict_fit(
         value += fit.driver_terms.get(f"driver_{driver}", 0.0)
     if team and fit.team_terms:
         value += fit.team_terms.get(f"team_{team}", 0.0)
+    if weather and fit.weather_terms and fit.weather_means:
+        for key, coefficient in fit.weather_terms.items():
+            column = key.removeprefix("weather_")
+            observed = weather.get(column)
+            if observed is not None:
+                value += coefficient * (float(observed) - fit.weather_means[column])
     return value
 
 
@@ -132,4 +149,6 @@ def _fit_to_dict(fit: CompoundFit | None) -> dict | None:
         "lap_number_coefficient": fit.lap_number_coefficient,
         "driver_terms": fit.driver_terms or {},
         "team_terms": fit.team_terms or {},
+        "weather_terms": fit.weather_terms or {},
+        "weather_means": fit.weather_means or {},
     }

@@ -31,9 +31,15 @@ def evaluate_future_laps(
         raise ValueError("Need at least four training laps and future laps with known anchors")
     model = TyreDegradationModel().fit(train)
 
+    weather_columns = ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed")
+
+    def weather_context(row) -> dict[str, float]:
+        return {column: float(getattr(row, column)) for column in weather_columns if hasattr(row, column) and pd.notna(getattr(row, column))}
+
     def model_delta(row, anchor):
-        predicted = model.predict_with_context(str(row.compound), row.tyre_life, row.lap_number, str(row.driver), str(row.team))
-        anchored = model.predict_with_context(str(anchor["compound"]), anchor["tyre_life"], anchor["lap_number"], str(row.driver), str(anchor["team"]))
+        predicted = model.predict_with_context(str(row.compound), row.tyre_life, row.lap_number, str(row.driver), str(row.team), weather_context(row))
+        anchor_weather = {column: float(anchor[column]) for column in weather_columns if column in anchor.index and pd.notna(anchor[column])}
+        anchored = model.predict_with_context(str(anchor["compound"]), anchor["tyre_life"], anchor["lap_number"], str(row.driver), str(anchor["team"]), anchor_weather)
         return float(predicted - anchored)
 
     known_deltas = []
