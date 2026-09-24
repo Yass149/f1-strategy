@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from .models import StrategyRequest, StrategyRecommendation
+from .models import StrategyRecommendation, StrategyRequest
 from .strategy import recommend_strategy
 
 app = FastAPI(title="Race Engineer AI", version="0.1.0")
@@ -16,4 +16,3 @@ def health() -> dict[str, str]:
 @app.post("/strategy/recommend", response_model=StrategyRecommendation)
 def strategy_recommend(request: StrategyRequest) -> StrategyRecommendation:
     return recommend_strategy(request)
-
