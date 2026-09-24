@@ -6,7 +6,11 @@ on laps available by the cutoff plus the other races, and predicts only laps
 after the cutoff. The prediction is anchored to each driver's last known lap
 so circuit pace does not leak into the comparison.
 
-The first complete run used cutoff lap 20 across all 24 races:
+The first complete run used cutoff lap 20 across all 24 races. The single
+headline number is **2.915 seconds MAE** for future stint lap times on unseen
+races, compared with **1.498 seconds MAE** for the last-lap baseline.
+
+Detailed averages:
 
 | Measure | Mean absolute error |
 | --- | ---: |
@@ -22,4 +26,3 @@ research baseline, not as a race-winning predictor.
 The next modelling iteration needs circuit-relative pace, fuel-load proxies,
 stint-level alignment, and weather/track-condition features before the model
 should control a strategy recommendation automatically.
-
