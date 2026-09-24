@@ -94,6 +94,8 @@ def read_lap_sample(path: Union[str, Path], driver: str = "VER", limit: int = 60
     if not file_path.exists():
         return []
     laps = pd.read_parquet(file_path)
+    if "is_accurate" in laps:
+        laps = laps[laps["is_accurate"].fillna(False).astype(bool)]
     selected = laps[laps["driver"].astype(str).eq(driver)].head(max(1, min(limit, 200)))
     columns = [column for column in ["driver", "lap_number", "lap_time_seconds", "tyre_life", "compound"] if column in selected]
     return selected[columns].where(selected[columns].notna(), None).to_dict(orient="records")
