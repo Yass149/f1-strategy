@@ -50,7 +50,7 @@ function loadTelemetry(driver) { fetch(`/data/laps?driver=${driver}&limit=60`).t
   values.forEach((value, index) => { const x = index * (canvas.width - 20) / Math.max(values.length - 1, 1) + 10; const y = canvas.height - 10 - ((value - low) / Math.max(high - low, 0.01)) * (canvas.height - 20); index ? context.lineTo(x, y) : context.moveTo(x, y); }); context.stroke();
   document.querySelector('#telemetry-status').textContent = `${values.length} accurate laps · ${low.toFixed(2)}–${high.toFixed(2)} seconds`;
 }); }
-function loadContext(driver) { fetch(`/data/context?driver=${driver}`).then(response => response.json()).then(context => {
+function loadContext(driver) { fetch(`/data/context?driver=${driver}&lap=40`).then(response => response.json()).then(context => {
   if (!context.available) return;
   for (const [name, value] of Object.entries({laps_remaining: context.laps_remaining, current_tyre_age: context.tyre_age, current_pace_seconds: context.current_pace_seconds})) {
     const input = document.querySelector(`[name="${name}"]`); if (input) input.value = value;

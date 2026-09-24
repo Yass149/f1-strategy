@@ -32,7 +32,7 @@ The dashboard also checks `GET /data/summary` to report whether the processed
 Monza session is available locally.
 `GET /data/laps?driver=VER` returns a bounded lap sample used by the telemetry
 preview chart.
-`GET /data/context?driver=VER` returns the latest accurate lap for the
+`GET /data/context?driver=VER&lap=40` returns an accurate mid-race lap for the
 strategy form defaults.
 
 Example request:

@@ -1,5 +1,9 @@
 """HTTP API for the first Race Engineer vertical slice."""
 
+from __future__ import annotations
+
+from typing import Optional
+
 from fastapi import FastAPI, Query
 
 from .data import read_driver_context, read_lap_sample, summarise_lap_file
@@ -39,8 +43,8 @@ def data_laps(driver: str = Query(default="VER", min_length=3, max_length=3), li
 
 
 @app.get("/data/context")
-def data_context(driver: str = Query(default="VER", min_length=3, max_length=3)):
-    return read_driver_context("data/processed/monza_2024_race.parquet", driver)
+def data_context(driver: str = Query(default="VER", min_length=3, max_length=3), lap: Optional[int] = Query(default=None, ge=1, le=100)):  # noqa: UP045
+    return read_driver_context("data/processed/monza_2024_race.parquet", driver, lap)
 
 
 @app.get("/health")
