@@ -54,7 +54,7 @@ fetch('/data/summary').then(response => response.json()).then(data => {
   const node = document.querySelector('#dataset');
   node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
   (data.drivers || []).forEach(driver => { const option = document.createElement('option'); option.value = driver; option.textContent = driver; driverSelect.appendChild(option); });
-  if (data.drivers && data.drivers.length) loadTelemetry(data.drivers[0]);
+  if (data.drivers && data.drivers.length) { driverSelect.value = data.drivers.includes('VER') ? 'VER' : data.drivers[0]; loadTelemetry(driverSelect.value); }
 });
 driverSelect.addEventListener('change', () => loadTelemetry(driverSelect.value));
 form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
