@@ -6,6 +6,7 @@ from typing import Optional
 
 from fastapi import FastAPI, Query
 
+from .backtest import backtest_strategy
 from .data import read_driver_context, read_lap_sample, summarise_lap_file
 from .frontend import dashboard
 from .models import (
@@ -45,6 +46,18 @@ def data_laps(driver: str = Query(default="VER", min_length=3, max_length=3), li
 @app.get("/data/context")
 def data_context(driver: str = Query(default="VER", min_length=3, max_length=3), lap: Optional[int] = Query(default=None, ge=1, le=100)):  # noqa: UP045
     return read_driver_context("data/processed/monza_2024_race.parquet", driver, lap)
+
+
+@app.get("/evaluation/backtest")
+def evaluation_backtest():
+    from pathlib import Path
+
+    import pandas as pd
+
+    path = "data/processed/monza_2024_race.parquet"
+    if not Path(path).exists():
+        return {"available": False, "message": "Download a processed session before running the backtest."}
+    return backtest_strategy(pd.read_parquet(path))
 
 
 @app.get("/health")

@@ -66,6 +66,11 @@ using future laps when making a decision about the current lap. Raw datasets
 will stay outside Git; the repository will contain reproducible download and
 feature-building scripts with dataset attribution.
 
+The current backtest evaluates the transparent counterfactual baseline; it is
+not a claim of race-winning performance. Weather and team-radio evidence are
+the next multimodal extension because they require additional licensed data
+and careful time alignment.
+
 ## Roadmap
 
 - [x] Testable baseline strategy rule
@@ -79,9 +84,10 @@ feature-building scripts with dataset attribution.
 - [x] Processed race-data status in dashboard
 - [x] Real processed lap sample and pace trace
 - [x] Driver-aware strategy form defaults
-- [ ] Tyre degradation features and race-level backtesting
-- [ ] Counterfactual pit-stop simulator
-- [ ] Telemetry, weather, and team-radio evidence in explanations
+- [x] Tyre degradation features and race-level backtesting
+- [x] Counterfactual pit-stop simulator
+- [x] Telemetry evidence in explanations
+- [ ] Weather and team-radio evidence in explanations
 - [ ] Interactive dashboard, Docker image, and deployment
 
 ## Project map
@@ -96,6 +102,8 @@ feature-building scripts with dataset attribution.
 - `src/race_engineer/frontend.py` — browser dashboard
 - `scripts/download_session.py` — reproducible session download command
 - `scripts/fit_degradation.py` — fit and export degradation coefficients
+- `src/race_engineer/backtest.py` — time-aware strategy backtesting
+- `scripts/backtest_session.py` — reproducible backtest command
 - `tests/` — behaviour tests for the first vertical slice
 
 Download a first session after installing the data extras:
@@ -104,4 +112,5 @@ Download a first session after installing the data extras:
 pip install -e '.[data]'
 python scripts/download_session.py --year 2024 --event Monza --session R
 python scripts/fit_degradation.py data/processed/laps.parquet
+python scripts/backtest_session.py data/processed/monza_2024_race.parquet
 ```

@@ -8,3 +8,7 @@ def test_dashboard_is_available() -> None:
     assert response.status_code == 200
     assert "Race Engineer AI" in response.text
 
+
+def test_backtest_endpoint_is_documented() -> None:
+    schema = TestClient(app).get("/openapi.json").json()
+    assert "/evaluation/backtest" in schema["paths"]
