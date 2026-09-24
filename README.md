@@ -2,15 +2,24 @@
 
 > Explainable F1 strategy and telemetry intelligence.
 
-Race Engineer AI is a production-minded project that replays historical races,
-estimates tyre degradation, compares pit-stop strategies, and explains its
-recommendations with evidence from telemetry, weather, and team radio.
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![FastF1](https://img.shields.io/badge/FastF1-race%20data-E10600)](https://docs.fastf1.dev/)
+[![Pandas](https://img.shields.io/badge/Pandas-data%20pipeline-150458?logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-modelling-013243?logo=numpy&logoColor=white)](https://numpy.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/Tests-18%20passing-2ea44f)](tests/)
+
+Race Engineer AI is an explainable F1 strategy workbench. It loads historical
+FastF1 sessions, turns them into leakage-safe lap features, compares pit-now
+and stay-out counterfactuals, replays decisions lap by lap, and exposes the
+evidence through a FastAPI service and browser dashboard.
 
 ## Current status
 
-The repository starts with a transparent strategy baseline and a FastAPI
-endpoint. This gives us a working vertical slice before we add historical F1
-data and machine-learning models.
+The current release is a transparent, reproducible MVP: it uses real 2024
+Monza race data and clearly labels baseline assumptions, estimated
+degradation, marginal calls, and backtest results.
 
 ## Run it locally
 
