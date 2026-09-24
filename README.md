@@ -30,6 +30,8 @@ Open `http://127.0.0.1:8000/dashboard` for the visual dashboard. The root URL
 (`http://127.0.0.1:8000/`) opens the same page.
 The dashboard also checks `GET /data/summary` to report whether the processed
 Monza session is available locally.
+`GET /data/laps?driver=VER` returns a bounded lap sample used by the telemetry
+preview chart.
 
 Example request:
 
@@ -73,6 +75,7 @@ feature-building scripts with dataset attribution.
 - [x] Lap-by-lap strategy replay endpoint
 - [x] First visual strategy dashboard
 - [x] Processed race-data status in dashboard
+- [x] Real processed lap sample and pace trace
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations

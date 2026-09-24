@@ -34,6 +34,7 @@ DASHBOARD_HTML = """<!doctype html>
       <button>Run counterfactual</button>
     </form>
     <article class="card"><h2>Decision output</h2><div id="result"><p>Submit the comparison to see the projected race-time difference.</p></div></article>
+    <article class="card"><h2>Loaded telemetry</h2><p>VER lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="520" height="180"></canvas><div id="telemetry-status"></div></article>
   </section>
   <p class="ok">● API online · <span id="dataset">Checking race data...</span> · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
 </main>
@@ -42,6 +43,14 @@ const form = document.querySelector('#compare-form'); const result = document.qu
 fetch('/data/summary').then(response => response.json()).then(data => {
   const node = document.querySelector('#dataset');
   node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
+});
+fetch('/data/laps?driver=VER&limit=60').then(response => response.json()).then(laps => {
+  const canvas = document.querySelector('#pace-chart'); const context = canvas.getContext('2d');
+  if (!laps.length) { document.querySelector('#telemetry-status').textContent = 'No telemetry sample available.'; return; }
+  const values = laps.map(lap => lap.lap_time_seconds).filter(value => value > 0); const low = Math.min(...values); const high = Math.max(...values);
+  context.strokeStyle = '#ff4d6d'; context.lineWidth = 3; context.beginPath();
+  values.forEach((value, index) => { const x = index * (canvas.width - 20) / Math.max(values.length - 1, 1) + 10; const y = canvas.height - 10 - ((value - low) / Math.max(high - low, 0.01)) * (canvas.height - 20); index ? context.lineTo(x, y) : context.moveTo(x, y); }); context.stroke();
+  document.querySelector('#telemetry-status').textContent = `${values.length} valid laps · ${low.toFixed(2)}–${high.toFixed(2)} seconds`;
 });
 form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
   for (const key of Object.keys(data)) data[key] = Number(data[key]);

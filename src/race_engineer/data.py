@@ -88,6 +88,17 @@ def summarise_lap_file(path: Union[str, Path]) -> dict:
     }
 
 
+def read_lap_sample(path: Union[str, Path], driver: str = "VER", limit: int = 60) -> list[dict]:
+    """Read a bounded driver lap sample for the dashboard."""
+    file_path = Path(path)
+    if not file_path.exists():
+        return []
+    laps = pd.read_parquet(file_path)
+    selected = laps[laps["driver"].astype(str).eq(driver)].head(max(1, min(limit, 200)))
+    columns = [column for column in ["driver", "lap_number", "lap_time_seconds", "tyre_life", "compound"] if column in selected]
+    return selected[columns].where(selected[columns].notna(), None).to_dict(orient="records")
+
+
 def _timedelta_seconds(values: pd.Series) -> pd.Series:
     if pd.api.types.is_timedelta64_dtype(values):
         return values.dt.total_seconds()
