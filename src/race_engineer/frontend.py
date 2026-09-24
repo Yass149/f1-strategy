@@ -56,7 +56,7 @@ function loadContext(driver) { fetch(`/data/context?driver=${driver}&lap=40`).th
     const input = document.querySelector(`[name="${name}"]`); if (input) input.value = value;
   }
   document.querySelector('#model-status').textContent = context.estimated_degradation_seconds_per_lap === null ? 'Degradation: baseline assumption (insufficient clean stint data)' : `Degradation: ${context.estimated_degradation_seconds_per_lap}s/lap · ${context.degradation_source}`;
-  form.requestSubmit();
+  runComparison();
 }); }
 fetch('/data/summary').then(response => response.json()).then(data => {
   const node = document.querySelector('#dataset');
@@ -65,12 +65,13 @@ fetch('/data/summary').then(response => response.json()).then(data => {
   if (data.drivers && data.drivers.length) { driverSelect.value = data.drivers.includes('VER') ? 'VER' : data.drivers[0]; loadTelemetry(driverSelect.value); loadContext(driverSelect.value); }
 });
 driverSelect.addEventListener('change', () => { loadTelemetry(driverSelect.value); loadContext(driverSelect.value); });
-form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
+async function runComparison() { const data = Object.fromEntries(new FormData(form));
   for (const key of Object.keys(data)) data[key] = Number(data[key]);
   result.innerHTML = '<p>Calculating...</p>';
   const response = await fetch('/strategy/compare', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
   const output = await response.json(); result.innerHTML = response.ok ? `<h3>${output.recommendation} · ${output.decision_strength}</h3><pre>${JSON.stringify(output, null, 2)}</pre>` : `<pre>${JSON.stringify(output, null, 2)}</pre>`;
-});
+}
+form.addEventListener('submit', async (event) => { event.preventDefault(); runComparison(); });
 </script></body></html>"""
 
 
