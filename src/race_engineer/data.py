@@ -118,6 +118,7 @@ def read_driver_context(path: Union[str, Path], driver: str, at_lap: int | None 
         return {"available": False, "driver": driver}
     latest = driver_laps.iloc[-1]
     total_laps = int(laps["lap_number"].max())
+    estimate = _estimate_degradation(driver_laps, str(latest["compound"]))
     return {
         "available": True,
         "driver": driver,
@@ -126,7 +127,24 @@ def read_driver_context(path: Union[str, Path], driver: str, at_lap: int | None 
         "tyre_age": int(latest["tyre_life"]),
         "current_pace_seconds": float(latest["lap_time_seconds"]),
         "compound": str(latest["compound"]),
+        "estimated_degradation_seconds_per_lap": estimate,
+        "degradation_source": "driver stint estimate" if estimate is not None else "baseline assumption",
     }
+
+
+def _estimate_degradation(laps: pd.DataFrame, compound: str) -> float | None:
+    stint = laps[laps["compound"].astype(str).eq(compound)].dropna(
+        subset=["tyre_life", "lap_time_seconds"]
+    )
+    if len(stint) < 4:
+        return None
+    tyre_life = stint["tyre_life"].astype(float)
+    lap_time = stint["lap_time_seconds"].astype(float)
+    variance = float(tyre_life.var())
+    if variance == 0:
+        return None
+    slope = float(tyre_life.cov(lap_time) / variance)
+    return round(max(0.0, min(0.2, slope)), 4)
 
 
 def _timedelta_seconds(values: pd.Series) -> pd.Series:

@@ -35,3 +35,4 @@ def test_driver_context_uses_latest_accurate_lap(tmp_path) -> None:
     context = read_driver_context(path, "VER")
     assert context["current_lap"] == 2
     assert context["current_pace_seconds"] == 89.8
+    assert "estimated_degradation_seconds_per_lap" in context

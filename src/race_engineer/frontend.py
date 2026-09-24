@@ -34,7 +34,7 @@ DASHBOARD_HTML = """<!doctype html>
       <button>Run counterfactual</button>
     </form>
     <article class="card"><h2>Decision output</h2><div id="result"><p>Submit the comparison to see the projected race-time difference.</p></div></article>
-    <article class="card"><h2>Loaded telemetry</h2><label for="driver-select">Driver</label><select id="driver-select"></select><p id="telemetry-description">Lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="400" height="180"></canvas><div id="telemetry-status"></div></article>
+    <article class="card"><h2>Loaded telemetry</h2><label for="driver-select">Driver</label><select id="driver-select"></select><p id="telemetry-description">Lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="400" height="180"></canvas><div id="telemetry-status"></div><small id="model-status">Degradation: baseline assumption</small></article>
   </section>
   <p class="ok">● API online · <span id="dataset">Checking race data...</span> · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
 </main>
@@ -55,6 +55,7 @@ function loadContext(driver) { fetch(`/data/context?driver=${driver}&lap=40`).th
   for (const [name, value] of Object.entries({laps_remaining: context.laps_remaining, current_tyre_age: context.tyre_age, current_pace_seconds: context.current_pace_seconds})) {
     const input = document.querySelector(`[name="${name}"]`); if (input) input.value = value;
   }
+  document.querySelector('#model-status').textContent = context.estimated_degradation_seconds_per_lap === null ? 'Degradation: baseline assumption (insufficient clean stint data)' : `Degradation: ${context.estimated_degradation_seconds_per_lap}s/lap · ${context.degradation_source}`;
   form.requestSubmit();
 }); }
 fetch('/data/summary').then(response => response.json()).then(data => {
