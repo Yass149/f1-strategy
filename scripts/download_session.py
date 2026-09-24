@@ -19,7 +19,7 @@ def main() -> None:
 
     event: Union[str, int] = int(args.event) if args.event.isdigit() else args.event
     session = load_session(args.year, event, args.session)
-    features = build_lap_features(session.laps)
+    features = build_lap_features(session.laps, session.weather_data)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     features.to_parquet(output, index=False)

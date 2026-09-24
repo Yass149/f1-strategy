@@ -46,6 +46,23 @@ pytest
 uvicorn race_engineer.api:app --reload
 ```
 
+To rebuild the dashboard’s Monza data with timestamp-safe weather:
+
+```bash
+python scripts/download_session.py --year 2024 --event Monza --session R \
+  --output data/processed/monza_2024_weather.parquet
+```
+
+To regenerate the full-season evaluation at multiple decision cutoffs:
+
+```bash
+python scripts/download_season.py --year 2024 \
+  --output-dir data/processed/season_2024_weather
+python scripts/evaluate_season.py data/processed/season_2024_weather \
+  --cutoffs 20,30,40 --cutoff-lap 20 \
+  --output artifacts/season_2024_weather_evaluation.json
+```
+
 Then open `http://127.0.0.1:8000/docs` and try `POST /strategy/recommend`.
 The `POST /strategy/compare` endpoint compares the two race counterfactuals.
 The `POST /strategy/windows` endpoint searches legal pit windows and enforces
