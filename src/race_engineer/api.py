@@ -61,6 +61,28 @@ def evaluation_backtest():
     return backtest_strategy(pd.read_parquet(path))
 
 
+@app.get("/evaluation/season-headline")
+def evaluation_season_headline():
+    from pathlib import Path
+    import json
+
+    path = Path("artifacts/season_2024_evaluation.json")
+    if not path.exists():
+        return {"available": False, "message": "Run scripts/evaluate_season.py to publish the season headline."}
+    payload = json.loads(path.read_text())
+    if isinstance(payload, dict):
+        headline = payload.get("headline", {})
+    else:
+        model = [row.get("model_mae_seconds") for row in payload if row.get("model_mae_seconds") is not None]
+        baseline = [row.get("last_lap_baseline_mae_seconds") for row in payload if row.get("last_lap_baseline_mae_seconds") is not None]
+        headline = {
+            "model_mae_seconds": sum(model) / len(model) if model else None,
+            "baseline_mae_seconds": sum(baseline) / len(baseline) if baseline else None,
+            "races": len(payload),
+        }
+    return {"available": True, **headline}
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
