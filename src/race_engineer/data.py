@@ -101,8 +101,11 @@ def attach_weather_features(laps: pd.DataFrame, weather: pd.DataFrame | None) ->
     if valid.empty:
         return invalid.sort_index()
     joined = pd.merge_asof(valid, right[["Time", *columns]], left_on=lap_time_column, right_on="Time", direction="backward")
-    joined = joined.drop(columns=["Time"], errors="ignore")
-    return pd.concat([joined, invalid], ignore_index=False).sort_index()
+    result = laps.copy()
+    for column in columns:
+        result[column] = pd.NA
+        result.loc[joined.index, column] = joined[column].to_numpy()
+    return result.sort_index()
 
 
 def filter_laps(laps: pd.DataFrame) -> pd.DataFrame:
