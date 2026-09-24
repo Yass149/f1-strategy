@@ -17,3 +17,12 @@ class StrategyRecommendation(BaseModel):
     pit_window: tuple[int, int]
     explanation: str
 
+
+class StrategyComparisonRequest(BaseModel):
+    laps_remaining: int = Field(ge=0)
+    current_tyre_age: int = Field(ge=0)
+    current_pace_seconds: float = Field(gt=0)
+    current_degradation_seconds_per_lap: float = Field(ge=0)
+    pit_loss_seconds: float = Field(gt=0)
+    fresh_tyre_pace_delta_seconds: float = -1.0
+    fresh_tyre_degradation_seconds_per_lap: float = Field(default=0.04, ge=0)
