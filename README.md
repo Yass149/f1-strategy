@@ -75,7 +75,7 @@ and careful time alignment.
 
 - [x] Testable baseline strategy rule
 - [x] Health check and recommendation API
-- [ ] FastF1 session ingestion and caching
+- [x] FastF1 session ingestion and caching
 - [x] Leakage-safe lap feature table and download script
 - [x] Interpretable tyre-degradation baseline
 - [x] Counterfactual pit-now versus stay-out simulator
@@ -88,7 +88,8 @@ and careful time alignment.
 - [x] Counterfactual pit-stop simulator
 - [x] Telemetry evidence in explanations
 - [ ] Weather and team-radio evidence in explanations
-- [ ] Interactive dashboard, Docker image, and deployment
+- [x] Interactive dashboard
+- [x] Docker image definition and production run path
 
 ## Project map
 
@@ -114,3 +115,10 @@ python scripts/download_session.py --year 2024 --event Monza --session R
 python scripts/fit_degradation.py data/processed/laps.parquet
 python scripts/backtest_session.py data/processed/monza_2024_race.parquet
 ```
+
+The live verification run exercised `/`, `/health`, `/data/summary`,
+`/data/laps`, `/data/context`, `/evaluation/backtest`, and
+`POST /strategy/compare`; all returned successfully against the downloaded
+2024 Monza session. Docker is defined in `Dockerfile`; the current machine did
+not have the Docker CLI installed, so image construction must be run on a host
+with Docker.
