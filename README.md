@@ -26,6 +26,7 @@ Then open `http://127.0.0.1:8000/docs` and try `POST /strategy/recommend`.
 The `POST /strategy/compare` endpoint compares the two race counterfactuals.
 The `POST /strategy/replay` endpoint applies that decision logic to observed
 laps and returns a lap-by-lap recommendation stream.
+Open `http://127.0.0.1:8000/` for the visual dashboard.
 
 Example request:
 
@@ -67,6 +68,7 @@ feature-building scripts with dataset attribution.
 - [x] Interpretable tyre-degradation baseline
 - [x] Counterfactual pit-now versus stay-out simulator
 - [x] Lap-by-lap strategy replay endpoint
+- [x] First visual strategy dashboard
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations
@@ -81,6 +83,7 @@ feature-building scripts with dataset attribution.
 - `src/race_engineer/degradation.py` — compound-level degradation model
 - `src/race_engineer/simulation.py` — counterfactual strategy comparison
 - `src/race_engineer/replay.py` — lap-by-lap replay logic
+- `src/race_engineer/frontend.py` — browser dashboard
 - `scripts/download_session.py` — reproducible session download command
 - `scripts/fit_degradation.py` — fit and export degradation coefficients
 - `tests/` — behaviour tests for the first vertical slice

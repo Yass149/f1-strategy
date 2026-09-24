@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 
+from .frontend import dashboard
 from .models import (
     ReplayDecision,
     ReplayRequest,
@@ -14,6 +15,11 @@ from .simulation import StrategyComparison, compare_pit_now
 from .strategy import recommend_strategy
 
 app = FastAPI(title="Race Engineer AI", version="0.1.0")
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return dashboard()
 
 
 @app.get("/health")
