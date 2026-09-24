@@ -102,6 +102,29 @@ def read_lap_sample(path: Union[str, Path], driver: str = "VER", limit: int = 60
     return selected[columns].where(selected[columns].notna(), None).to_dict(orient="records")
 
 
+def read_driver_context(path: Union[str, Path], driver: str) -> dict:
+    """Return the latest accurate lap as strategy-form defaults."""
+    file_path = Path(path)
+    if not file_path.exists():
+        return {"available": False}
+    laps = pd.read_parquet(file_path)
+    accurate = laps[laps["is_accurate"].fillna(False).astype(bool)]
+    driver_laps = accurate[accurate["driver"].astype(str).eq(driver)].sort_values("lap_number")
+    if driver_laps.empty:
+        return {"available": False, "driver": driver}
+    latest = driver_laps.iloc[-1]
+    total_laps = int(laps["lap_number"].max())
+    return {
+        "available": True,
+        "driver": driver,
+        "current_lap": int(latest["lap_number"]),
+        "laps_remaining": max(total_laps - int(latest["lap_number"]), 0),
+        "tyre_age": int(latest["tyre_life"]),
+        "current_pace_seconds": float(latest["lap_time_seconds"]),
+        "compound": str(latest["compound"]),
+    }
+
+
 def _timedelta_seconds(values: pd.Series) -> pd.Series:
     if pd.api.types.is_timedelta64_dtype(values):
         return values.dt.total_seconds()

@@ -50,13 +50,19 @@ function loadTelemetry(driver) { fetch(`/data/laps?driver=${driver}&limit=60`).t
   values.forEach((value, index) => { const x = index * (canvas.width - 20) / Math.max(values.length - 1, 1) + 10; const y = canvas.height - 10 - ((value - low) / Math.max(high - low, 0.01)) * (canvas.height - 20); index ? context.lineTo(x, y) : context.moveTo(x, y); }); context.stroke();
   document.querySelector('#telemetry-status').textContent = `${values.length} accurate laps · ${low.toFixed(2)}–${high.toFixed(2)} seconds`;
 }); }
+function loadContext(driver) { fetch(`/data/context?driver=${driver}`).then(response => response.json()).then(context => {
+  if (!context.available) return;
+  for (const [name, value] of Object.entries({laps_remaining: context.laps_remaining, current_tyre_age: context.tyre_age, current_pace_seconds: context.current_pace_seconds})) {
+    const input = document.querySelector(`[name="${name}"]`); if (input) input.value = value;
+  }
+}); }
 fetch('/data/summary').then(response => response.json()).then(data => {
   const node = document.querySelector('#dataset');
   node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
   (data.drivers || []).forEach(driver => { const option = document.createElement('option'); option.value = driver; option.textContent = driver; driverSelect.appendChild(option); });
-  if (data.drivers && data.drivers.length) { driverSelect.value = data.drivers.includes('VER') ? 'VER' : data.drivers[0]; loadTelemetry(driverSelect.value); }
+  if (data.drivers && data.drivers.length) { driverSelect.value = data.drivers.includes('VER') ? 'VER' : data.drivers[0]; loadTelemetry(driverSelect.value); loadContext(driverSelect.value); }
 });
-driverSelect.addEventListener('change', () => loadTelemetry(driverSelect.value));
+driverSelect.addEventListener('change', () => { loadTelemetry(driverSelect.value); loadContext(driverSelect.value); });
 form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
   for (const key of Object.keys(data)) data[key] = Number(data[key]);
   result.innerHTML = '<p>Calculating...</p>';

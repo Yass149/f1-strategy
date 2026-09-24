@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI, Query
 
-from .data import read_lap_sample, summarise_lap_file
+from .data import read_driver_context, read_lap_sample, summarise_lap_file
 from .frontend import dashboard
 from .models import (
     ReplayDecision,
@@ -36,6 +36,11 @@ def data_summary():
 @app.get("/data/laps")
 def data_laps(driver: str = Query(default="VER", min_length=3, max_length=3), limit: int = Query(default=60, ge=1, le=200)):
     return read_lap_sample("data/processed/monza_2024_race.parquet", driver, limit)
+
+
+@app.get("/data/context")
+def data_context(driver: str = Query(default="VER", min_length=3, max_length=3)):
+    return read_driver_context("data/processed/monza_2024_race.parquet", driver)
 
 
 @app.get("/health")

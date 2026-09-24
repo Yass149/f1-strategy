@@ -32,6 +32,8 @@ The dashboard also checks `GET /data/summary` to report whether the processed
 Monza session is available locally.
 `GET /data/laps?driver=VER` returns a bounded lap sample used by the telemetry
 preview chart.
+`GET /data/context?driver=VER` returns the latest accurate lap for the
+strategy form defaults.
 
 Example request:
 
@@ -76,6 +78,7 @@ feature-building scripts with dataset attribution.
 - [x] First visual strategy dashboard
 - [x] Processed race-data status in dashboard
 - [x] Real processed lap sample and pace trace
+- [x] Driver-aware strategy form defaults
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations
