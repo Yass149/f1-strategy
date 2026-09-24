@@ -35,10 +35,14 @@ DASHBOARD_HTML = """<!doctype html>
     </form>
     <article class="card"><h2>Decision output</h2><div id="result"><p>Submit the comparison to see the projected race-time difference.</p></div></article>
   </section>
-  <p class="ok">● API online · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
+  <p class="ok">● API online · <span id="dataset">Checking race data...</span> · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
 </main>
 <script>
 const form = document.querySelector('#compare-form'); const result = document.querySelector('#result');
+fetch('/data/summary').then(response => response.json()).then(data => {
+  const node = document.querySelector('#dataset');
+  node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
+});
 form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form));
   for (const key of Object.keys(data)) data[key] = Number(data[key]);
   result.innerHTML = '<p>Calculating...</p>';

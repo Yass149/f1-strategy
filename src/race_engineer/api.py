@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 
+from .data import summarise_lap_file
 from .frontend import dashboard
 from .models import (
     ReplayDecision,
@@ -25,6 +26,11 @@ def home():
 @app.get("/dashboard", include_in_schema=False)
 def dashboard_page():
     return dashboard()
+
+
+@app.get("/data/summary")
+def data_summary():
+    return summarise_lap_file("data/processed/monza_2024_race.parquet")
 
 
 @app.get("/health")

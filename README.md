@@ -28,6 +28,8 @@ The `POST /strategy/replay` endpoint applies that decision logic to observed
 laps and returns a lap-by-lap recommendation stream.
 Open `http://127.0.0.1:8000/dashboard` for the visual dashboard. The root URL
 (`http://127.0.0.1:8000/`) opens the same page.
+The dashboard also checks `GET /data/summary` to report whether the processed
+Monza session is available locally.
 
 Example request:
 
@@ -70,6 +72,7 @@ feature-building scripts with dataset attribution.
 - [x] Counterfactual pit-now versus stay-out simulator
 - [x] Lap-by-lap strategy replay endpoint
 - [x] First visual strategy dashboard
+- [x] Processed race-data status in dashboard
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations

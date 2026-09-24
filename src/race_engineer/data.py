@@ -72,6 +72,22 @@ def build_lap_features(laps: pd.DataFrame) -> pd.DataFrame:
     return output.reset_index(drop=True)
 
 
+def summarise_lap_file(path: Union[str, Path]) -> dict:
+    """Return a small, dashboard-safe summary of a processed lap file."""
+    file_path = Path(path)
+    if not file_path.exists():
+        return {"available": False, "path": str(file_path)}
+    laps = pd.read_parquet(file_path, columns=["driver", "lap_number"])
+    return {
+        "available": True,
+        "path": str(file_path),
+        "lap_count": len(laps),
+        "driver_count": int(laps["driver"].nunique()),
+        "lap_min": int(laps["lap_number"].min()),
+        "lap_max": int(laps["lap_number"].max()),
+    }
+
+
 def _timedelta_seconds(values: pd.Series) -> pd.Series:
     if pd.api.types.is_timedelta64_dtype(values):
         return values.dt.total_seconds()
