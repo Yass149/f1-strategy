@@ -84,7 +84,7 @@ def _fit_line(laps: pd.DataFrame) -> CompoundFit:
     for column, default in (("lap_number", 0), ("driver", "UNKNOWN"), ("team", "UNKNOWN")):
         if column not in working:
             working[column] = default
-    weather_columns = [column for column in ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed") if column in working]
+    weather_columns = [column for column in ("AirTemp",) if column in working]
     weather_means = {column: float(pd.to_numeric(working[column], errors="coerce").median()) for column in weather_columns}
     matrix = pd.DataFrame({"tyre_life": working["tyre_life"].astype(float), "lap_number": working["lap_number"].astype(float)})
     for column in weather_columns:

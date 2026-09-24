@@ -31,7 +31,7 @@ def evaluate_future_laps(
         raise ValueError("Need at least four training laps and future laps with known anchors")
     model = TyreDegradationModel().fit(train)
 
-    weather_columns = ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed")
+    weather_columns = ("AirTemp",)
 
     def weather_context(row) -> dict[str, float]:
         return {column: float(getattr(row, column)) for column in weather_columns if hasattr(row, column) and pd.notna(getattr(row, column))}

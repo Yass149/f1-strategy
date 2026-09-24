@@ -21,7 +21,7 @@ Monza race data and clearly labels baseline assumptions, estimated
 degradation, marginal calls, and backtest results.
 
 **Headline evaluation:** future stint lap-time MAE on 24 unseen 2024 races is
-**1.389 seconds**, compared with **1.498 seconds** for the last-lap baseline.
+**1.344 seconds**, compared with **1.498 seconds** for the last-lap baseline.
 The current model is therefore a research baseline, not a claimed improvement.
 
 ## Visual evidence

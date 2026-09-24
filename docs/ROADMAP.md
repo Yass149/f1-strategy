@@ -6,7 +6,7 @@ The headline test is future-stint lap-time MAE on unseen races versus repeating 
 
 - Calibrated the learned tyre/fuel/driver/team movement against known laps only.
 - Clamped the calibration weight to `[0, 1]`, making zero exactly equal to the last-lap baseline.
-- Re-evaluated all 24 2024 races: model MAE **1.389s** versus baseline **1.498s**.
+- Re-evaluated all 24 2024 races: model MAE **1.344s** versus baseline **1.498s**.
 - The model improves 12 of 24 races; the full per-race report remains in the generated evaluation artifact.
 
 ## Next upgrades

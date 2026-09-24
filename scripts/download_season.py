@@ -10,6 +10,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--year", type=int, default=2024)
     parser.add_argument("--output-dir", default="data/processed")
+    parser.add_argument("--refresh", action="store_true", help="rebuild existing parquet files")
     args = parser.parse_args()
     import fastf1
 
@@ -22,7 +23,7 @@ def main() -> None:
             continue
         name = str(event["EventName"]).lower().replace(" ", "_")
         output = output_dir / f"{args.year}_{round_number:02d}_{name}.parquet"
-        if output.exists():
+        if output.exists() and not args.refresh:
             print(f"Skipping cached {output}")
             continue
         session = load_session(args.year, round_number, "R")

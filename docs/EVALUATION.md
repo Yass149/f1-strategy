@@ -7,14 +7,14 @@ after the cutoff. The prediction is anchored to each driver's last known lap
 so circuit pace does not leak into the comparison.
 
 The first complete run used cutoff lap 20 across all 24 races. The single
-headline number is **1.389 seconds MAE** for future stint lap times on unseen
+headline number is **1.344 seconds MAE** for future stint lap times on unseen
 races, compared with **1.498 seconds MAE** for the last-lap baseline.
 
 Detailed averages:
 
 | Measure | Mean absolute error |
 | --- | ---: |
-| Calibrated fuel/tyre/driver/team model | 1.389 s |
+| Air-temperature-aware calibrated fuel/tyre/driver/team model | 1.344 s |
 | Last known lap baseline | 1.498 s |
 | Model minus baseline | +1.417 s |
 
