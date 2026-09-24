@@ -7,8 +7,7 @@
 [![FastF1](https://img.shields.io/badge/FastF1-race%20data-E10600)](https://docs.fastf1.dev/)
 [![Pandas](https://img.shields.io/badge/Pandas-data%20pipeline-150458?logo=pandas&logoColor=white)](https://pandas.pydata.org/)
 [![NumPy](https://img.shields.io/badge/NumPy-modelling-013243?logo=numpy&logoColor=white)](https://numpy.org/)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-18%20passing-2ea44f)](tests/)
+[![CI](https://github.com/Yass149/f1-strategy/actions/workflows/ci.yml/badge.svg)](https://github.com/Yass149/f1-strategy/actions/workflows/ci.yml)
 
 Race Engineer AI is an explainable F1 strategy workbench. It loads historical
 FastF1 sessions, turns them into leakage-safe lap features, compares pit-now
@@ -33,6 +32,8 @@ uvicorn race_engineer.api:app --reload
 
 Then open `http://127.0.0.1:8000/docs` and try `POST /strategy/recommend`.
 The `POST /strategy/compare` endpoint compares the two race counterfactuals.
+The `POST /strategy/windows` endpoint searches legal pit windows and enforces
+two different dry-weather compounds.
 The `POST /strategy/replay` endpoint applies that decision logic to observed
 laps and returns a lap-by-lap recommendation stream.
 Open `http://127.0.0.1:8000/dashboard` for the visual dashboard. The root URL
@@ -95,10 +96,10 @@ and careful time alignment.
 - [x] Driver-aware strategy form defaults
 - [x] Tyre degradation features and race-level backtesting
 - [x] Counterfactual pit-stop simulator
-- [x] Telemetry evidence in explanations
-- [ ] Weather and team-radio evidence in explanations
+- [x] Legal pit-window search with dry-race compound rule
+- [ ] Telemetry, weather, and team-radio evidence in explanations
 - [x] Interactive dashboard
-- [x] Docker image definition and production run path
+- [x] Dockerfile and production run path (build locally where Docker is available)
 
 ## Project map
 
@@ -108,12 +109,15 @@ and careful time alignment.
 - `src/race_engineer/data.py` — optional FastF1 loading and lap features
 - `src/race_engineer/degradation.py` — compound-level degradation model
 - `src/race_engineer/simulation.py` — counterfactual strategy comparison
+- `POST /strategy/windows` — legal pit-window search
 - `src/race_engineer/replay.py` — lap-by-lap replay logic
 - `src/race_engineer/frontend.py` — browser dashboard
 - `scripts/download_session.py` — reproducible session download command
 - `scripts/fit_degradation.py` — fit and export degradation coefficients
 - `src/race_engineer/backtest.py` — time-aware strategy backtesting
 - `scripts/backtest_session.py` — reproducible backtest command
+- `scripts/download_season.py` — download all race sessions for a season
+- `scripts/evaluate_season.py` — leave-one-race-out evaluation
 - `tests/` — behaviour tests for the first vertical slice
 
 Download a first session after installing the data extras:

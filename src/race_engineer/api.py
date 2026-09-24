@@ -15,9 +15,10 @@ from .models import (
     StrategyComparisonRequest,
     StrategyRecommendation,
     StrategyRequest,
+    StrategyWindowRequest,
 )
 from .replay import replay_laps
-from .simulation import StrategyComparison, compare_pit_now
+from .simulation import StrategyComparison, StrategyWindow, compare_pit_now, compare_pit_windows
 from .strategy import recommend_strategy
 
 app = FastAPI(title="Race Engineer AI", version="0.1.0")
@@ -73,6 +74,11 @@ def strategy_recommend(request: StrategyRequest) -> StrategyRecommendation:
 @app.post("/strategy/compare", response_model=StrategyComparison)
 def strategy_compare(request: StrategyComparisonRequest) -> StrategyComparison:
     return compare_pit_now(**request.model_dump())
+
+
+@app.post("/strategy/windows", response_model=StrategyWindow)
+def strategy_windows(request: StrategyWindowRequest) -> StrategyWindow:
+    return compare_pit_windows(**request.model_dump())
 
 
 @app.post("/strategy/replay", response_model=list[ReplayDecision])

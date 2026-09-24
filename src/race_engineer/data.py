@@ -64,12 +64,36 @@ def build_lap_features(laps: pd.DataFrame) -> pd.DataFrame:
         ("Stint", "stint"),
         ("Team", "team"),
         ("IsAccurate", "is_accurate"),
+        ("TrackStatus", "track_status"),
+        ("Deleted", "deleted"),
+        ("PitInTime", "pit_in_time"),
+        ("PitOutTime", "pit_out_time"),
     ):
         if source in laps:
             output[target] = laps[source].values
 
-    output = output.sort_values(["driver", "lap_number"])
-    return output.reset_index(drop=True)
+    return filter_laps(output)
+
+
+def filter_laps(laps: pd.DataFrame) -> pd.DataFrame:
+    """Remove laps that cannot support a clean dry-tyre pace estimate."""
+    clean = laps.copy()
+    clean = clean[clean["lap_number"].gt(1)]
+    clean = clean[clean["lap_time_seconds"].gt(0)]
+    if "is_accurate" in clean:
+        clean = clean[clean["is_accurate"].astype("boolean").fillna(False)]
+    if "deleted" in clean:
+        clean = clean[~clean["deleted"].astype("boolean").fillna(False)]
+    if "track_status" in clean:
+        status = clean["track_status"].astype(str).str.strip()
+        clean = clean[status.isin({"1", "1.0", "GREEN", "ALL_CLEAR"})]
+    if "pit_in_time" in clean:
+        clean = clean[clean["pit_in_time"].isna()]
+    if "pit_out_time" in clean:
+        clean = clean[clean["pit_out_time"].isna()]
+    medians = clean.groupby("driver")["lap_time_seconds"].transform("median")
+    clean = clean[clean["lap_time_seconds"].le(medians * 1.07)]
+    return clean.sort_values(["driver", "lap_number"]).reset_index(drop=True)
 
 
 def summarise_lap_file(path: Union[str, Path]) -> dict:

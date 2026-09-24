@@ -28,6 +28,18 @@ class StrategyComparisonRequest(BaseModel):
     fresh_tyre_degradation_seconds_per_lap: float = Field(default=0.04, ge=0)
 
 
+class StrategyWindowRequest(BaseModel):
+    laps_remaining: int = Field(ge=1)
+    current_tyre_age: int = Field(ge=0)
+    current_compound: str
+    current_pace_seconds: float = Field(gt=0)
+    current_degradation_seconds_per_lap: float = Field(ge=0)
+    pit_loss_seconds: float = Field(gt=0)
+    available_compounds: tuple[str, ...] = ("SOFT", "MEDIUM", "HARD")
+    dry_race: bool = True
+    max_wait_laps: int = Field(default=8, ge=0, le=30)
+
+
 class ReplayLap(BaseModel):
     lap_number: int = Field(ge=1)
     tyre_age: int = Field(ge=0)

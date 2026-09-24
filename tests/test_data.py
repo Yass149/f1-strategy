@@ -16,11 +16,10 @@ def test_build_lap_features_converts_timedeltas_and_sorts_by_driver() -> None:
         }
     )
     features = build_lap_features(laps)
-    assert features["driver"].tolist() == ["HAM", "HAM", "VER"]
-    assert features["lap_time_seconds"].tolist() == [92.0, 91.5, 90.2]
+    assert features["driver"].tolist() == ["HAM"]
+    assert features["lap_time_seconds"].tolist() == [91.5]
 
 
 def test_build_lap_features_requires_core_columns() -> None:
     with pytest.raises(ValueError, match="Lap table is missing"):
         build_lap_features(pd.DataFrame({"Driver": ["HAM"]}))
-

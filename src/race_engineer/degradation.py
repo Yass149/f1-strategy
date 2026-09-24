@@ -15,6 +15,9 @@ class CompoundFit:
     baseline_seconds: float
     degradation_seconds_per_lap: float
     sample_count: int
+    lap_number_coefficient: float = 0.0
+    driver_terms: dict[str, float] | None = None
+    team_terms: dict[str, float] | None = None
 
 
 class TyreDegradationModel:
@@ -50,7 +53,21 @@ class TyreDegradationModel:
         if self.global_fit is None:
             raise RuntimeError("Fit the model before predicting")
         fit = self.fits.get(compound, self.global_fit)
-        return fit.baseline_seconds + fit.degradation_seconds_per_lap * tyre_life
+        return _predict_fit(fit, tyre_life, 0.0, None, None)
+
+    def predict_with_context(
+        self,
+        compound: str,
+        tyre_life: float,
+        lap_number: float,
+        driver: str | None = None,
+        team: str | None = None,
+    ) -> float:
+        if self.global_fit is None:
+            raise RuntimeError("Fit the model before predicting")
+        return _predict_fit(
+            self.fits.get(compound, self.global_fit), tyre_life, lap_number, driver, team
+        )
 
     def to_dict(self) -> dict:
         return {
@@ -60,14 +77,49 @@ class TyreDegradationModel:
 
 
 def _fit_line(laps: pd.DataFrame) -> CompoundFit:
-    x = laps["tyre_life"].astype(float).to_numpy()
-    y = laps["lap_time_seconds"].astype(float).to_numpy()
-    slope, intercept = np.polyfit(x, y, 1)
+    working = laps.copy()
+    for column, default in (("lap_number", 0), ("driver", "UNKNOWN"), ("team", "UNKNOWN")):
+        if column not in working:
+            working[column] = default
+    matrix = pd.DataFrame({"tyre_life": working["tyre_life"].astype(float), "lap_number": working["lap_number"].astype(float)})
+    driver = pd.get_dummies(working["driver"].astype(str), prefix="driver", drop_first=True, dtype=float)
+    team = pd.get_dummies(working["team"].astype(str), prefix="team", drop_first=True, dtype=float)
+    matrix = pd.concat([matrix, driver, team], axis=1)
+    design = np.column_stack([np.ones(len(matrix)), matrix.to_numpy(dtype=float)])
+    # Fuel proxy and tyre age are correlated during a stint. A small ridge
+    # penalty keeps the driver/team terms stable without clipping wear rates.
+    penalty = np.eye(design.shape[1]) * 1.0
+    penalty[0, 0] = 0.0
+    response = working["lap_time_seconds"].astype(float).to_numpy()
+    augmented_design = np.vstack([design, np.sqrt(penalty)])
+    augmented_response = np.concatenate([response, np.zeros(design.shape[1])])
+    coefficients, *_ = np.linalg.lstsq(augmented_design, augmented_response, rcond=None)
+    names = ["intercept", *matrix.columns.tolist()]
+    coefficient_map = dict(zip(names, coefficients))
     return CompoundFit(
-        baseline_seconds=round(float(intercept), 4),
-        degradation_seconds_per_lap=round(max(float(slope), 0.0), 4),
-        sample_count=len(laps),
+        baseline_seconds=round(float(coefficient_map["intercept"]), 4),
+        degradation_seconds_per_lap=round(float(coefficient_map.get("tyre_life", 0.0)), 4),
+        sample_count=len(working),
+        lap_number_coefficient=round(float(coefficient_map.get("lap_number", 0.0)), 4),
+        driver_terms={key: round(float(value), 4) for key, value in coefficient_map.items() if key.startswith("driver_")},
+        team_terms={key: round(float(value), 4) for key, value in coefficient_map.items() if key.startswith("team_")},
     )
+
+
+def _predict_fit(
+    fit: CompoundFit,
+    tyre_life: float,
+    lap_number: float,
+    driver: str | None,
+    team: str | None,
+) -> float:
+    value = fit.baseline_seconds + fit.degradation_seconds_per_lap * tyre_life
+    value += fit.lap_number_coefficient * lap_number
+    if driver and fit.driver_terms:
+        value += fit.driver_terms.get(f"driver_{driver}", 0.0)
+    if team and fit.team_terms:
+        value += fit.team_terms.get(f"team_{team}", 0.0)
+    return value
 
 
 def _fit_to_dict(fit: CompoundFit | None) -> dict | None:
@@ -77,4 +129,7 @@ def _fit_to_dict(fit: CompoundFit | None) -> dict | None:
         "baseline_seconds": fit.baseline_seconds,
         "degradation_seconds_per_lap": fit.degradation_seconds_per_lap,
         "sample_count": fit.sample_count,
+        "lap_number_coefficient": fit.lap_number_coefficient,
+        "driver_terms": fit.driver_terms or {},
+        "team_terms": fit.team_terms or {},
     }
