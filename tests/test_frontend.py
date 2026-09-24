@@ -13,3 +13,8 @@ def test_dashboard_is_available() -> None:
 def test_backtest_endpoint_is_documented() -> None:
     schema = TestClient(app).get("/openapi.json").json()
     assert "/evaluation/backtest" in schema["paths"]
+
+
+def test_cutoff_evaluation_endpoint_is_documented() -> None:
+    schema = TestClient(app).get("/openapi.json").json()
+    assert "/evaluation/cutoffs" in schema["paths"]

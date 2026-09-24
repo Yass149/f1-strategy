@@ -186,6 +186,9 @@ def read_driver_context(path: Union[str, Path], driver: str, at_lap: int | None 
         "compound": str(latest["compound"]),
         "estimated_degradation_seconds_per_lap": estimate,
         "degradation_source": "driver stint estimate" if estimate is not None else "baseline assumption",
+        "weather_available": bool("AirTemp" in latest.index and pd.notna(latest.get("AirTemp"))),
+        "air_temperature_c": float(latest["AirTemp"]) if "AirTemp" in latest.index and pd.notna(latest.get("AirTemp")) else None,
+        "model_confidence": "HIGH" if len(driver_laps) >= 12 and estimate is not None else "MEDIUM" if estimate is not None else "LOW",
     }
 
 

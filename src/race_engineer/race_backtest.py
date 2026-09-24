@@ -54,19 +54,38 @@ def evaluate_future_laps(
     alpha = max(0.0, min(1.0, alpha))
     predictions = []
     actual = []
+    groups: dict[str, dict[str, list[float]]] = {}
     for row in test.itertuples(index=False):
         anchor = anchors.loc[row.driver]
         base = float(anchor["lap_time_seconds"])
-        predictions.append(base + alpha * model_delta(row, anchor))
-        actual.append(float(row.lap_time_seconds))
+        prediction = base + alpha * model_delta(row, anchor)
+        truth = float(row.lap_time_seconds)
+        predictions.append(prediction)
+        actual.append(truth)
+        group = groups.setdefault(str(row.compound), {"predictions": [], "actual": [], "baseline": []})
+        group["predictions"].append(prediction)
+        group["actual"].append(truth)
+        group["baseline"].append(base)
     baseline = [float(anchors.loc[row.driver, "lap_time_seconds"]) for row in test.itertuples()]
     model_mae = sum(abs(prediction - truth) for prediction, truth in zip(predictions, actual)) / len(actual)
     baseline_mae = sum(abs(prediction - truth) for prediction, truth in zip(baseline, actual)) / len(actual)
+    by_compound = {
+        compound: {
+            "test_laps": len(values["actual"]),
+            "model_mae_seconds": round(sum(abs(a - p) for a, p in zip(values["actual"], values["predictions"])) / len(values["actual"]), 4),
+            "baseline_mae_seconds": round(sum(abs(a - p) for a, p in zip(values["actual"], values["baseline"])) / len(values["actual"]), 4),
+        }
+        for compound, values in groups.items()
+    }
+    ordered = test.sort_values(["driver", "lap_number"])
+    transitions = int((ordered["compound"].astype(str) != ordered.groupby("driver")["compound"].shift().astype(str)).sum())
     return {
         "cutoff_lap": cutoff_lap,
         "train_laps": len(train),
         "test_laps": len(test),
         "calibration_alpha": round(alpha, 4),
+        "compound_metrics": by_compound,
+        "stint_transitions_scored": transitions,
         "model_mae_seconds": round(model_mae, 4),
         "last_lap_baseline_mae_seconds": round(baseline_mae, 4),
         "improvement_seconds": round(baseline_mae - model_mae, 4),

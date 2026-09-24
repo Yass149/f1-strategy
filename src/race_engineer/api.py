@@ -24,7 +24,7 @@ from .strategy import recommend_strategy
 
 app = FastAPI(title="Race Engineer AI", version="0.1.0")
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "monza_2024_race.parquet"
+DATA_PATH = next((path for path in (PROJECT_ROOT / "data" / "processed" / "monza_2024_weather.parquet", PROJECT_ROOT / "data" / "processed" / "monza_2024_race.parquet") if path.exists()), PROJECT_ROOT / "data" / "processed" / "monza_2024_race.parquet")
 
 
 @app.get("/", include_in_schema=False)
@@ -66,7 +66,7 @@ def evaluation_backtest():
 def evaluation_season_headline():
     import json
 
-    path = PROJECT_ROOT / "artifacts" / "season_2024_evaluation.json"
+    path = next((candidate for candidate in (PROJECT_ROOT / "artifacts" / "season_2024_weather_evaluation.json", PROJECT_ROOT / "artifacts" / "season_2024_evaluation.json") if candidate.exists()), PROJECT_ROOT / "artifacts" / "season_2024_evaluation.json")
     if not path.exists():
         return {"available": False, "message": "Run scripts/evaluate_season.py to publish the season headline."}
     payload = json.loads(path.read_text())
@@ -81,6 +81,17 @@ def evaluation_season_headline():
             "races": len(payload),
         }
     return {"available": True, **headline}
+
+
+@app.get("/evaluation/cutoffs")
+def evaluation_cutoffs():
+    import json
+
+    path = PROJECT_ROOT / "artifacts" / "season_2024_weather_evaluation.json"
+    if not path.exists():
+        return {"available": False, "message": "Run the multi-cutoff season evaluation first."}
+    payload = json.loads(path.read_text())
+    return {"available": True, "cutoff_metrics": payload.get("headline", {}).get("cutoff_metrics", {})}
 
 
 @app.get("/health")
