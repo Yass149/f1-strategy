@@ -16,12 +16,20 @@ Detailed averages:
 | --- | ---: |
 | Air-temperature-aware calibrated fuel/tyre/driver/team model | 1.344 s |
 | Last known lap baseline | 1.498 s |
-| Model minus baseline | +1.417 s |
+| Baseline minus model (improvement) | +0.154 s |
 
-The model improves on the baseline in 2 of 24 races. This is a valid negative
-result: the current features do not yet support a reliable cross-circuit pace
-forecast. The dashboard therefore presents the model as an explainable
-research baseline, not as a race-winning predictor.
+The model improves on the baseline in **11 of 24 races** at cutoff lap 20.
+The same holdout at different decision times is: 
+
+| Cutoff | Model MAE | Baseline MAE |
+| ---: | ---: | ---: |
+| Lap 20 | 1.344 s | 1.498 s |
+| Lap 30 | 1.383 s | 1.564 s |
+| Lap 40 | 1.103 s | 1.249 s |
+
+Compound-level and stint-transition metrics are included in the generated JSON
+report for each held-out race. The dashboard presents the model as an
+explainable research system, not as an autonomous race-winning predictor.
 
 The next modelling iteration needs circuit-relative pace, fuel-load proxies,
 stint-level alignment, and weather/track-condition features before the model
