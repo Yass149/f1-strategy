@@ -28,8 +28,20 @@ class StrategyComparisonRequest(BaseModel):
     fresh_tyre_degradation_seconds_per_lap: float = Field(default=0.04, ge=0)
 
 
+class ReplayLap(BaseModel):
+    lap_number: int = Field(ge=1)
+    tyre_age: int = Field(ge=0)
+    lap_time_seconds: float = Field(gt=0)
+
+
+class ReplayDecision(BaseModel):
+    lap_number: int
+    recommendation: str
+    pit_now_advantage_seconds: float
+
+
 class ReplayRequest(BaseModel):
     total_laps: int = Field(gt=1)
-    laps: list[dict] = Field(min_length=1)
+    laps: list[ReplayLap] = Field(min_length=1)
     pit_loss_seconds: float = Field(default=22.0, gt=0)
     degradation_seconds_per_lap: float = Field(default=0.08, ge=0)

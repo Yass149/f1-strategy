@@ -3,12 +3,13 @@
 from fastapi import FastAPI
 
 from .models import (
+    ReplayDecision,
     ReplayRequest,
     StrategyComparisonRequest,
     StrategyRecommendation,
     StrategyRequest,
 )
-from .replay import ReplayDecision, ReplayLap, replay_laps
+from .replay import replay_laps
 from .simulation import StrategyComparison, compare_pit_now
 from .strategy import recommend_strategy
 
@@ -32,9 +33,8 @@ def strategy_compare(request: StrategyComparisonRequest) -> StrategyComparison:
 
 @app.post("/strategy/replay", response_model=list[ReplayDecision])
 def strategy_replay(request: ReplayRequest) -> list[ReplayDecision]:
-    laps = [ReplayLap.model_validate(lap) for lap in request.laps]
     return replay_laps(
-        laps,
+        request.laps,
         total_laps=request.total_laps,
         pit_loss_seconds=request.pit_loss_seconds,
         degradation_seconds_per_lap=request.degradation_seconds_per_lap,

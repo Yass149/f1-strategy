@@ -1,20 +1,7 @@
 """Lap-by-lap strategy replay helpers."""
 
-from pydantic import BaseModel, Field
-
+from .models import ReplayDecision, ReplayLap
 from .simulation import compare_pit_now
-
-
-class ReplayLap(BaseModel):
-    lap_number: int = Field(ge=1)
-    tyre_age: int = Field(ge=0)
-    lap_time_seconds: float = Field(gt=0)
-
-
-class ReplayDecision(BaseModel):
-    lap_number: int
-    recommendation: str
-    pit_now_advantage_seconds: float
 
 
 def replay_laps(
@@ -39,4 +26,3 @@ def replay_laps(
         )
         for lap in laps
     ]
-

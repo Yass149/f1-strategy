@@ -1,4 +1,5 @@
-from race_engineer.replay import ReplayLap, replay_laps
+from race_engineer.models import ReplayLap
+from race_engineer.replay import replay_laps
 
 
 def test_replay_returns_one_decision_per_observed_lap() -> None:
@@ -12,4 +13,3 @@ def test_replay_returns_one_decision_per_observed_lap() -> None:
     assert len(decisions) == 2
     assert decisions[0].lap_number == 20
     assert decisions[0].recommendation in {"PIT NOW", "STAY OUT"}
-
