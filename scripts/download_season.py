@@ -26,7 +26,7 @@ def main() -> None:
             print(f"Skipping cached {output}")
             continue
         session = load_session(args.year, round_number, "R")
-        build_lap_features(session.laps).to_parquet(output, index=False)
+        build_lap_features(session.laps, session.weather_data).to_parquet(output, index=False)
         print(f"Wrote {output}")
 
 

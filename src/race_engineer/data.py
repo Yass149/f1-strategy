@@ -36,11 +36,11 @@ def load_session(
     cache_path.mkdir(parents=True, exist_ok=True)
     fastf1.Cache.enable_cache(str(cache_path))
     session = fastf1.get_session(year, event, session_name)
-    session.load(telemetry=False, weather=False, messages=False)
+    session.load(telemetry=False, weather=True, messages=False)
     return session
 
 
-def build_lap_features(laps: pd.DataFrame) -> pd.DataFrame:
+def build_lap_features(laps: pd.DataFrame, weather: pd.DataFrame | None = None) -> pd.DataFrame:
     """Create a compact lap table suitable for time-aware modelling.
 
     The output only contains information known by the end of each lap. The
@@ -59,6 +59,8 @@ def build_lap_features(laps: pd.DataFrame) -> pd.DataFrame:
     output["lap_time_seconds"] = _timedelta_seconds(laps["LapTime"])
 
     for source, target in (
+        ("LapStartTime", "lap_start_time"),
+        ("Time", "lap_end_time"),
         ("Compound", "compound"),
         ("TyreLife", "tyre_life"),
         ("Stint", "stint"),
@@ -72,7 +74,28 @@ def build_lap_features(laps: pd.DataFrame) -> pd.DataFrame:
         if source in laps:
             output[target] = laps[source].values
 
+    output = attach_weather_features(output, weather)
     return filter_laps(output)
+
+
+def attach_weather_features(laps: pd.DataFrame, weather: pd.DataFrame | None) -> pd.DataFrame:
+    """Attach the latest weather observation available at lap end."""
+    if weather is None or weather.empty:
+        return laps
+    lap_time_column = "lap_end_time" if "lap_end_time" in laps else "lap_start_time"
+    if lap_time_column not in laps or "Time" not in weather:
+        return laps
+    left = laps.copy()
+    right = weather.copy()
+    left[lap_time_column] = pd.to_datetime(left[lap_time_column], errors="coerce", utc=True)
+    right["Time"] = pd.to_datetime(right["Time"], errors="coerce", utc=True)
+    left = left.sort_values(lap_time_column)
+    right = right.sort_values("Time")
+    columns = [c for c in ("AirTemp", "Humidity", "Pressure", "Rainfall", "TrackTemp", "WindSpeed") if c in right]
+    if not columns:
+        return laps
+    joined = pd.merge_asof(left, right[["Time", *columns]], left_on=lap_time_column, right_on="Time", direction="backward")
+    return joined.drop(columns=["Time"], errors="ignore").sort_index()
 
 
 def filter_laps(laps: pd.DataFrame) -> pd.DataFrame:
