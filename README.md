@@ -24,6 +24,8 @@ uvicorn race_engineer.api:app --reload
 
 Then open `http://127.0.0.1:8000/docs` and try `POST /strategy/recommend`.
 The `POST /strategy/compare` endpoint compares the two race counterfactuals.
+The `POST /strategy/replay` endpoint applies that decision logic to observed
+laps and returns a lap-by-lap recommendation stream.
 
 Example request:
 
@@ -64,6 +66,7 @@ feature-building scripts with dataset attribution.
 - [x] Leakage-safe lap feature table and download script
 - [x] Interpretable tyre-degradation baseline
 - [x] Counterfactual pit-now versus stay-out simulator
+- [x] Lap-by-lap strategy replay endpoint
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations
@@ -77,6 +80,7 @@ feature-building scripts with dataset attribution.
 - `src/race_engineer/data.py` — optional FastF1 loading and lap features
 - `src/race_engineer/degradation.py` — compound-level degradation model
 - `src/race_engineer/simulation.py` — counterfactual strategy comparison
+- `src/race_engineer/replay.py` — lap-by-lap replay logic
 - `scripts/download_session.py` — reproducible session download command
 - `scripts/fit_degradation.py` — fit and export degradation coefficients
 - `tests/` — behaviour tests for the first vertical slice
