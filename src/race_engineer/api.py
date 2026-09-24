@@ -63,8 +63,8 @@ def evaluation_backtest():
 
 @app.get("/evaluation/season-headline")
 def evaluation_season_headline():
-    from pathlib import Path
     import json
+    from pathlib import Path
 
     path = Path("artifacts/season_2024_evaluation.json")
     if not path.exists():
