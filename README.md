@@ -24,6 +24,18 @@ degradation, marginal calls, and backtest results.
 **2.915 seconds**, compared with **1.498 seconds** for the last-lap baseline.
 The current model is therefore a research baseline, not a claimed improvement.
 
+## Visual evidence
+
+The dashboard is built around evidence that can be inspected rather than a single opaque score. This is a real filtered lap-time trace from the processed Monza parquet file:
+
+![VER Monza 2024 filtered lap-time trace](docs/assets/telemetry-trace.png)
+
+The headline evaluation is deliberately shown alongside the simple last-lap baseline. On the current 24-race holdout, the baseline is lower, so the next modelling work has a measurable target:
+
+![Unseen-race headline evaluation](docs/assets/evaluation-headline.png)
+
+These images are generated from the repository data and evaluation artifact; they are not mock product screenshots.
+
 ## Run it locally
 
 ```bash
