@@ -7,6 +7,7 @@ def test_dashboard_is_available() -> None:
     response = TestClient(app).get("/")
     assert response.status_code == 200
     assert "Race Engineer AI" in response.text
+    assert "Backtest evidence" in response.text
 
 
 def test_backtest_endpoint_is_documented() -> None:

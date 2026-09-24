@@ -17,7 +17,7 @@ DASHBOARD_HTML = """<!doctype html>
     .card { background:rgba(20,28,49,.92); border:1px solid #2c395a; border-radius:18px; padding:22px; box-shadow:0 18px 40px #05081255; }
     label { display:block; color:var(--muted); font-size:.85rem; margin:12px 0 5px; } input { width:100%; padding:10px; border-radius:9px; border:1px solid #3a496e; background:#0d1528; color:white; }
     button { margin-top:16px; width:100%; padding:11px; border:0; border-radius:9px; background:var(--accent); color:white; font-weight:700; cursor:pointer; }
-    pre { white-space:pre-wrap; color:#d7e1ff; min-height:90px; } .ok { color:var(--green); } select { width:100%; padding:9px; border-radius:9px; border:1px solid #3a496e; background:#0d1528; color:white; margin:8px 0 12px; } canvas { width:100%; height:180px; display:block; }
+    pre { white-space:pre-wrap; color:#d7e1ff; min-height:90px; } .ok { color:var(--green); } select { width:100%; padding:9px; border-radius:9px; border:1px solid #3a496e; background:#0d1528; color:white; margin:8px 0 12px; } canvas { width:100%; height:180px; display:block; } .metric { font-size:2rem; font-weight:800; color:#fff; } .metric-label { color:var(--muted); font-size:.85rem; } .assumption { border-left:3px solid var(--accent); padding-left:12px; color:var(--muted); }
   </style>
 </head>
 <body><main>
@@ -35,6 +35,10 @@ DASHBOARD_HTML = """<!doctype html>
     </form>
     <article class="card"><h2>Decision output</h2><div id="result"><p>Submit the comparison to see the projected race-time difference.</p></div></article>
     <article class="card"><h2>Loaded telemetry</h2><label for="driver-select">Driver</label><select id="driver-select"></select><p id="telemetry-description">Lap-time trace from the processed Monza session.</p><canvas id="pace-chart" width="400" height="180"></canvas><div id="telemetry-status"></div><small id="model-status">Degradation: baseline assumption</small></article>
+  </section>
+  <section class="grid">
+    <article class="card"><h2>Backtest evidence</h2><p>Time-aware replay over the loaded Monza session.</p><div class="grid" style="margin-top:12px"><div><div class="metric" id="backtest-laps">—</div><div class="metric-label">accurate laps</div></div><div><div class="metric" id="backtest-drivers">—</div><div class="metric-label">drivers</div></div><div><div class="metric" id="backtest-marginal">—</div><div class="metric-label">marginal calls</div></div></div></article>
+    <article class="card"><h2>How to read this</h2><p class="assumption">The simulator compares two counterfactuals from the selected lap. It does not claim to reconstruct the actual pit wall or predict race results.</p><p class="assumption">The current baseline assumes a 22-second pit loss, a one-second fresh-tyre pace gain, and explicit degradation inputs.</p></article>
   </section>
   <p class="ok">● API online · <span id="dataset">Checking race data...</span> · <a href="/docs" style="color:#9eb5ff">Open Swagger docs</a></p>
 </main>
@@ -63,6 +67,13 @@ fetch('/data/summary').then(response => response.json()).then(data => {
   node.textContent = data.available ? `Monza 2024 loaded · ${data.lap_count} laps · ${data.driver_count} drivers` : 'No processed race file loaded';
   (data.drivers || []).forEach(driver => { const option = document.createElement('option'); option.value = driver; option.textContent = driver; driverSelect.appendChild(option); });
   if (data.drivers && data.drivers.length) { driverSelect.value = data.drivers.includes('VER') ? 'VER' : data.drivers[0]; loadTelemetry(driverSelect.value); loadContext(driverSelect.value); }
+});
+fetch('/evaluation/backtest').then(response => response.json()).then(report => {
+  if (report.lap_count !== undefined) {
+    document.querySelector('#backtest-laps').textContent = report.lap_count ?? '—';
+    document.querySelector('#backtest-drivers').textContent = report.drivers ?? '—';
+    document.querySelector('#backtest-marginal').textContent = report.marginal_decisions ?? '—';
+  }
 });
 driverSelect.addEventListener('change', () => { loadTelemetry(driverSelect.value); loadContext(driverSelect.value); });
 async function runComparison() { const data = Object.fromEntries(new FormData(form));
