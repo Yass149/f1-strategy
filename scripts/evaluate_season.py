@@ -13,7 +13,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("directory", default="data/processed", nargs="?")
     parser.add_argument("--cutoff-lap", type=int, default=20)
-    parser.add_argument("--output", default="artifacts/season_evaluation.json")
+    parser.add_argument("--output", default="artifacts/season_2024_evaluation.json")
     args = parser.parse_args()
     files = sorted(Path(args.directory).glob("*.parquet"))
     if len(files) < 2:

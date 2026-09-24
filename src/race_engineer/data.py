@@ -168,7 +168,7 @@ def _estimate_degradation(laps: pd.DataFrame, compound: str) -> float | None:
     if variance == 0:
         return None
     slope = float(tyre_life.cov(lap_time) / variance)
-    return round(max(0.0, min(0.2, slope)), 4)
+    return round(float(slope), 4)
 
 
 def _timedelta_seconds(values: pd.Series) -> pd.Series:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Query
@@ -22,6 +23,8 @@ from .simulation import StrategyComparison, StrategyWindow, compare_pit_now, com
 from .strategy import recommend_strategy
 
 app = FastAPI(title="Race Engineer AI", version="0.1.0")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_PATH = PROJECT_ROOT / "data" / "processed" / "monza_2024_race.parquet"
 
 
 @app.get("/", include_in_schema=False)
@@ -36,26 +39,24 @@ def dashboard_page():
 
 @app.get("/data/summary")
 def data_summary():
-    return summarise_lap_file("data/processed/monza_2024_race.parquet")
+    return summarise_lap_file(DATA_PATH)
 
 
 @app.get("/data/laps")
 def data_laps(driver: str = Query(default="VER", min_length=3, max_length=3), limit: int = Query(default=60, ge=1, le=200)):
-    return read_lap_sample("data/processed/monza_2024_race.parquet", driver, limit)
+    return read_lap_sample(DATA_PATH, driver, limit)
 
 
 @app.get("/data/context")
 def data_context(driver: str = Query(default="VER", min_length=3, max_length=3), lap: Optional[int] = Query(default=None, ge=1, le=100)):  # noqa: UP045
-    return read_driver_context("data/processed/monza_2024_race.parquet", driver, lap)
+    return read_driver_context(DATA_PATH, driver, lap)
 
 
 @app.get("/evaluation/backtest")
 def evaluation_backtest():
-    from pathlib import Path
-
     import pandas as pd
 
-    path = "data/processed/monza_2024_race.parquet"
+    path = DATA_PATH
     if not Path(path).exists():
         return {"available": False, "message": "Download a processed session before running the backtest."}
     return backtest_strategy(pd.read_parquet(path))
@@ -64,9 +65,8 @@ def evaluation_backtest():
 @app.get("/evaluation/season-headline")
 def evaluation_season_headline():
     import json
-    from pathlib import Path
 
-    path = Path("artifacts/season_2024_evaluation.json")
+    path = PROJECT_ROOT / "artifacts" / "season_2024_evaluation.json"
     if not path.exists():
         return {"available": False, "message": "Run scripts/evaluate_season.py to publish the season headline."}
     payload = json.loads(path.read_text())

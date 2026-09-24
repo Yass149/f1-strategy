@@ -23,13 +23,16 @@ def evaluate_future_laps(
     if "is_accurate" in train:
         train = train[train["is_accurate"].fillna(False).astype(bool)]
     test = clean[clean["lap_number"] > cutoff_lap]
+    anchors = known.sort_values(["driver", "lap_number"]).groupby("driver").last()
+    # A driver who has no clean lap before the cutoff cannot be scored without
+    # inventing a baseline context. Exclude those rows and report the scored set.
+    test = test[test["driver"].isin(anchors.index)]
     if len(train) < 4 or test.empty:
-        raise ValueError("Need at least four training laps and future laps")
+        raise ValueError("Need at least four training laps and future laps with known anchors")
     model = TyreDegradationModel().fit(train)
     predictions = []
     baseline = []
     actual = []
-    anchors = known.sort_values(["driver", "lap_number"]).groupby("driver").last()
     for row in test.itertuples(index=False):
         predicted_absolute = model.predict_with_context(
             str(row.compound), row.tyre_life, row.lap_number, str(row.driver), str(row.team)

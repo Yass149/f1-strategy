@@ -145,6 +145,17 @@ python scripts/fit_degradation.py data/processed/laps.parquet
 python scripts/backtest_session.py data/processed/monza_2024_race.parquet
 ```
 
+## Engineering checks
+
+The repository is continuously checked with the same commands used locally:
+
+```bash
+pytest -q                 # 22 behavioural and data-contract tests
+ruff check src tests scripts
+```
+
+The headline metric is intentionally a comparison against a simple baseline. The current model does not beat that baseline yet; this is recorded as the next measurable research objective rather than hidden behind a green badge.
+
 The live verification run exercised `/`, `/health`, `/data/summary`,
 `/data/laps`, `/data/context`, `/evaluation/backtest`, and
 `POST /strategy/compare`; all returned successfully against the downloaded
