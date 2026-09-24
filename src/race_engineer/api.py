@@ -22,6 +22,11 @@ def home():
     return dashboard()
 
 
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_page():
+    return dashboard()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}

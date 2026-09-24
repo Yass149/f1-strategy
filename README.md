@@ -26,7 +26,8 @@ Then open `http://127.0.0.1:8000/docs` and try `POST /strategy/recommend`.
 The `POST /strategy/compare` endpoint compares the two race counterfactuals.
 The `POST /strategy/replay` endpoint applies that decision logic to observed
 laps and returns a lap-by-lap recommendation stream.
-Open `http://127.0.0.1:8000/` for the visual dashboard.
+Open `http://127.0.0.1:8000/dashboard` for the visual dashboard. The root URL
+(`http://127.0.0.1:8000/`) opens the same page.
 
 Example request:
 
