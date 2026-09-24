@@ -61,6 +61,7 @@ feature-building scripts with dataset attribution.
 - [x] Health check and recommendation API
 - [ ] FastF1 session ingestion and caching
 - [x] Leakage-safe lap feature table and download script
+- [x] Interpretable tyre-degradation baseline
 - [ ] Tyre degradation features and race-level backtesting
 - [ ] Counterfactual pit-stop simulator
 - [ ] Telemetry, weather, and team-radio evidence in explanations
@@ -72,7 +73,9 @@ feature-building scripts with dataset attribution.
 - `src/race_engineer/strategy.py` — transparent baseline decision logic
 - `src/race_engineer/api.py` — FastAPI application
 - `src/race_engineer/data.py` — optional FastF1 loading and lap features
+- `src/race_engineer/degradation.py` — compound-level degradation model
 - `scripts/download_session.py` — reproducible session download command
+- `scripts/fit_degradation.py` — fit and export degradation coefficients
 - `tests/` — behaviour tests for the first vertical slice
 
 Download a first session after installing the data extras:
@@ -80,4 +83,5 @@ Download a first session after installing the data extras:
 ```bash
 pip install -e '.[data]'
 python scripts/download_session.py --year 2024 --event Monza --session R
+python scripts/fit_degradation.py data/processed/laps.parquet
 ```
