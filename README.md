@@ -10,7 +10,7 @@
 [![CI](https://github.com/Yass149/f1-strategy/actions/workflows/ci.yml/badge.svg)](https://github.com/Yass149/f1-strategy/actions/workflows/ci.yml)
 
 Race Engineer AI is an explainable F1 strategy workbench. It loads historical
-FastF1 sessions, turns them into leakage-safe lap features, compares pit-now
+FastF1 sessions, turns them into time-aware lap features, compares pit-now
 and stay-out counterfactuals, replays decisions lap by lap, and exposes the
 evidence through a FastAPI service and browser dashboard.
 
@@ -22,7 +22,11 @@ degradation, marginal calls, and backtest results.
 
 **Headline evaluation:** future stint lap-time MAE on 24 unseen 2024 races is
 **1.344 seconds**, compared with **1.498 seconds** for the last-lap baseline.
-The current model is therefore a research baseline, not a claimed improvement.
+Lower MAE is better: this is a **0.154-second mean improvement** over the
+baseline, and the model wins in **11 of 24 races** at cutoff lap 20. This is
+evidence about lap-time prediction only; it does not show that the pit-stop
+recommendations improve finishing position or race outcomes. The project
+remains a research prototype.
 
 ## Visual evidence
 
@@ -30,18 +34,22 @@ The dashboard is built around evidence that can be inspected rather than a singl
 
 ![VER Monza 2024 filtered lap-time trace](docs/assets/telemetry-trace.png)
 
-The headline evaluation is deliberately shown alongside the simple last-lap baseline. On the current 24-race holdout, the baseline is lower, so the next modelling work has a measurable target:
+The headline evaluation is deliberately shown alongside the simple last-lap
+baseline. The chart below reflects the cutoff-lap-20 values from the
+reproducible season evaluation. Running `scripts/evaluate_season.py` writes
+the detailed report to `artifacts/season_2024_weather_evaluation.json`:
 
 ![Unseen-race headline evaluation](docs/assets/evaluation-headline.png)
 
-These images are generated from the repository data and evaluation artifact; they are not mock product screenshots.
+These images are generated from the repository data and evaluation run; they
+are not mock product screenshots.
 
 ## Run it locally
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -e '.[dev,data]'
 pytest
 uvicorn race_engineer.api:app --reload
 ```
@@ -104,15 +112,22 @@ flowchart LR
   G --> H[FastAPI and Docker]
 ```
 
-The data pipeline will use cached downloads and time-aware evaluation to avoid
-using future laps when making a decision about the current lap. Raw datasets
-will stay outside Git; the repository will contain reproducible download and
-feature-building scripts with dataset attribution.
+The data pipeline uses cached downloads and time-aware evaluation. For each
+held-out race, the evaluator fits on the other races plus all drivers' laps
+from the held-out race available up to the selected cutoff, then scores only
+later laps from that race. The
+last-lap-repeat baseline uses the same information available at the cutoff.
+The model's `calibration_alpha` is a bounded scalar for point-prediction
+adjustment learned from pre-cutoff laps; it is not a probability and the
+evaluation is not a Monte Carlo simulation. Raw datasets stay outside Git;
+the repository contains reproducible download and feature-building scripts
+with dataset attribution.
 
-The current backtest evaluates the transparent counterfactual baseline; it is
-not a claim of race-winning performance. Weather and team-radio evidence are
-the next multimodal extension because they require additional licensed data
-and careful time alignment.
+The current backtest evaluates future lap-time prediction and the dashboard
+also exposes transparent pit-stop counterfactuals. Neither result is a claim
+of race-winning performance. Timestamp-safe weather is included in the
+current evaluation; team-radio evidence remains a future multimodal extension
+because it requires additional licensed data and careful time alignment.
 
 ## Roadmap
 
@@ -130,7 +145,8 @@ and careful time alignment.
 - [x] Tyre degradation features and race-level backtesting
 - [x] Counterfactual pit-stop simulator
 - [x] Legal pit-window search with dry-race compound rule
-- [ ] Telemetry, weather, and team-radio evidence in explanations
+- [x] Processed telemetry and timestamp-safe weather context in explanations
+- [ ] Team-radio evidence in explanations
 - [x] Interactive dashboard
 - [x] Dockerfile and production run path (build locally where Docker is available)
 
@@ -167,11 +183,15 @@ python scripts/backtest_session.py data/processed/monza_2024_race.parquet
 The repository is continuously checked with the same commands used locally:
 
 ```bash
-pytest -q                 # 22 behavioural and data-contract tests
+pytest -q                 # project behaviour and data-contract tests
 ruff check src tests scripts
 ```
 
-The headline metric is intentionally a comparison against a simple baseline. The current model does not beat that baseline yet; this is recorded as the next measurable research objective rather than hidden behind a green badge.
+The headline metric is intentionally a comparison against a simple baseline.
+The current model improves mean future-lap MAE at cutoff lap 20, while the
+per-race result is mixed (11 wins out of 24). Improving generalisation across
+circuits remains an explicit research objective rather than a race-outcome
+claim.
 
 The live verification run exercised `/`, `/health`, `/data/summary`,
 `/data/laps`, `/data/context`, `/evaluation/backtest`, and
