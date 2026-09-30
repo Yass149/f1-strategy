@@ -1,7 +1,3 @@
-<div align="center">
-  <img src="assets/readme-banner.svg" alt="Red racing line and telemetry points on a dark track-inspired grid" width="100%" />
-</div>
-
 # Race Engineer AI
 
 > Explainable F1 strategy and telemetry intelligence.
